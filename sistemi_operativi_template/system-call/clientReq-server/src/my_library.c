@@ -1,4 +1,5 @@
 #include <string.h>
+#include <stdio.h>
 #include <ctype.h>
 #include <sys/sem.h>
 #include "my_library.h"
@@ -14,6 +15,20 @@ void semOp (int semid, unsigned short sem_num, short sem_op) {
     if (semop(semid, &sop, 1) == -1)
         errExit("semop failed");
 }
+
+void printSemaphoresValue (int semid) {
+    unsigned short semVal[1];
+    union semun arg;
+    arg.array = semVal;
+
+    // get the current state of the set
+    if (semctl(semid, 0 /*ignored*/, GETALL, arg) == -1)
+        errExit("semctl GETALL failed");
+
+    // print the semaphore's value
+    printf("semaphore set state: %d\n",semVal[0]);
+}
+
 
 
 void strlwr(char * str){

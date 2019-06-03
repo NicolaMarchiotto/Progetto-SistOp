@@ -9,6 +9,7 @@
 #include <time.h>
 #include <sys/wait.h>
 #include <sys/sem.h>
+#include <sys/types.h>
 
 #include "my_library.h"
 #include "errExit.h"
@@ -22,7 +23,9 @@ int shmid;
 struct mynode *ptr_vet;
 int semid;
 
-const int semkey=10;
+const int semkey=1;
+const int shmkey=2;
+const int shmkeyint=3;
 
 
 
@@ -104,7 +107,17 @@ int main (int argc, char *argv[]) {
       errExit("change signal handler failed");
 
 //CREO SET DI SEMAFORI
-	semid=semget(semkey, 1, S_IRUSR | S_IWUSR);
+	semid=semget(semkey, 1, IPC_CREAT | S_IWUSR | S_IRUSR);
+	if (semid == -1)
+			errExit("semget failed");
+
+	// Initialize the semaphore set with semctl
+	unsigned short semInitVal[] = {1};
+	union semun arg;
+	arg.array = semInitVal;
+
+	if(semctl(semid, 0, SETALL, arg))
+			errExit("semctl SETALL failed");
 
 //WELCOME
 
@@ -112,7 +125,7 @@ int main (int argc, char *argv[]) {
 
 //CREATING SHARED MEMORY
 
-  shmid=shmget(5,1000*sizeof(struct mynode), IPC_CREAT | S_IRUSR | S_IWUSR );
+  shmid=shmget(shmkey,1000*sizeof(struct mynode), IPC_CREAT | S_IRUSR | S_IWUSR );
 	if(shmid==-1)
 			errExit("\nshmget error for shmid");
 
@@ -121,7 +134,7 @@ int main (int argc, char *argv[]) {
   //creating count for helping managing
 
 
-  shmidInt=shmget(6,sizeof(int), IPC_CREAT | S_IRUSR | S_IWUSR );
+  shmidInt=shmget(shmkeyint,sizeof(int), IPC_CREAT | S_IRUSR | S_IWUSR );
 	if(shmidInt==-1)
 		errExit("\nshmget error for shmidInt");
   ptr_count=(int *)shmat(shmidInt,NULL,0);
@@ -151,7 +164,7 @@ int main (int argc, char *argv[]) {
   printf("\n<Server> Creating %s", FifoServer);
   int fd=mkfifo(FifoServer, O_CREAT | S_IRUSR | S_IWUSR);
   if(fd==-1)
-    printf("\n<Server> MkFifo error\n");
+    errExit("\n<Server> MkFifo error\n");
   else
     printf("\n<Server> %s created\n",FifoServer);
 
@@ -161,7 +174,7 @@ int main (int argc, char *argv[]) {
   int fs=open(FifoServer, O_RDONLY);
 
 	if(fs==-1)
-    printf("\n<Server> Open fifo error\n");
+    errExit("\n<Server> Open fifo error\n");
   else
     printf("\n<Server> %s opened\n",FifoServer);
 
@@ -205,12 +218,16 @@ int main (int argc, char *argv[]) {
   resp.key=getkey(req.servizio);
 
 
+	semOp(semid, 0 , -1);
+
 
 //WRITING IN FIFOCLIENT
 
     strcpy(resp.id,req.id);
     strcpy(resp.servizio,req.servizio);
     write(fc,&resp,sizeof(struct Response));
+
+	semOp(semid, 0 , 1);
   }
 
 

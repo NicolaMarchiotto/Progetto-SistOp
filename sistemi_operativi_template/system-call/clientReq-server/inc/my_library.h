@@ -11,6 +11,8 @@ void strlwr(char * str);
  */
 void semOp (int semid, unsigned short sem_num, short sem_op);
 
+void printSemaphoresValue (int semid);
+
 struct Request{
   char id[20];
   char servizio[10];
@@ -34,7 +36,7 @@ struct mynode{
   int time;
 };
 
-struct senum{
+union semun{
     int val;
     struct semid_ds * buf;
     unsigned short * array;
