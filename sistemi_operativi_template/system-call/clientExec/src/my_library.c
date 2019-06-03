@@ -1,7 +1,7 @@
 #include <string.h>
 #include <ctype.h>
 
-void strlwr(char str[]){
+void strlwr(char *str){
 
   int i=0;
 

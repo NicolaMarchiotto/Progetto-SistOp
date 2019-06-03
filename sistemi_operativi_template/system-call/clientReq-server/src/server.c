@@ -7,6 +7,8 @@
 #include <signal.h>
 #include <sys/shm.h>
 #include <time.h>
+#include <sys/wait.h>
+#include <sys/sem.h>
 
 #include "my_library.h"
 #include "errExit.h"
@@ -14,35 +16,50 @@
 char FifoServer[20]="FIFOSERVER";
 char FifoClient[20];
 pid_t pid;
+int shmidInt;
 int *ptr_count;
+int shmid;
 struct mynode *ptr_vet;
+int semid;
+
+const int semkey=10;
+
 
 
 void sigHandler(int sing) {
-//DELETING FIFOSERVER AND KILLING SERVER
+
+//DEALLOCATING RESOURCES, KILLING SERVER AND KEYMANAGER
 
 	if(sing==SIGTERM){
+		if(pid>0){
       printf("\n<Server> Deleting %s", FifoServer);
       if(unlink(FifoServer)==-1)
         printf("\n<Server> Deleting %s error\n", FifoServer);
       else
         printf("\n<Server> %s deleted\n", FifoServer);
 
-      kill(pid,SIGTERM);
+			kill(pid,SIGTERM);
 
-      printf("\n\n\nFine file Server\n\n\n");
+			if(shmdt(ptr_vet)==-1)
+				errExit("\nshmdt error for ptr_vet");
+			if(shmctl(shmid,IPC_RMID,NULL)==-1)
+				errExit("\nshmctl error for shmid");
+
+			if(shmdt(ptr_count)==-1)
+				errExit("\nshmdt error for ptr_count");
+			if(shmctl(shmidInt,IPC_RMID,NULL)==-1)
+				errExit("\nshmctl error for shmidInt");
+
+			if(semctl(semid, 0,IPC_RMID))
+				errExit("semctl error for deleting semset");
+
+			printf("\n\n\nFine file Server\n\n\n");
+			wait(NULL);
       exit(0);
+		}
+		else
+			exit(0);
   }
-
-  if(sing==SIGALRM){
-
-    //#####RIVEDI###
-    for(int i=0;i<*ptr_count;i++){
-      if(ptr_vet[i].time>=300)
-        //ptr_vet[i]=NULL;
-    alarm(30);
-  	}
-	}
 }
 
 //GETKEY FUNCTION
@@ -79,7 +96,6 @@ int main (int argc, char *argv[]) {
   sigfillset(&mySet);
   // remove SIGTERM from mySet -> ABLITO SIGINT AD ESSERE RICEVUTO
   sigdelset(&mySet, SIGTERM);
-  sigdelset(&mySet, SIGALRM);
   // blocking all signals but SIGINT -> faccio diventare la maschera del processo myset
   sigprocmask(SIG_SETMASK, &mySet, NULL);
 
@@ -87,20 +103,31 @@ int main (int argc, char *argv[]) {
   if (signal(SIGTERM,sigHandler) == SIG_ERR)
       errExit("change signal handler failed");
 
-//WELLCOME
+//CREO SET DI SEMAFORI
+	semid=semget(semkey, 1, S_IRUSR | S_IWUSR);
+
+//WELCOME
 
   printf("Hi, I'm Server program!\n");
 
 //CREATING SHARED MEMORY
 
-  int shmid=shmget(5,1000*sizeof(struct mynode), IPC_CREAT | O_RDWR );
-  ptr_vet=(struct mynode *)shmat(shmid,NULL,0);
+  shmid=shmget(5,1000*sizeof(struct mynode), IPC_CREAT | S_IRUSR | S_IWUSR );
+	if(shmid==-1)
+			errExit("\nshmget error for shmid");
 
+	ptr_vet=(struct mynode *)shmat(shmid,NULL,0);
 
   //creating count for helping managing
-  int shmidInt=shmget(6,sizeof(int), IPC_CREAT | O_RDWR );
+
+
+  shmidInt=shmget(6,sizeof(int), IPC_CREAT | S_IRUSR | S_IWUSR );
+	if(shmidInt==-1)
+		errExit("\nshmget error for shmidInt");
   ptr_count=(int *)shmat(shmidInt,NULL,0);
-  *ptr_count=0;
+
+	*ptr_count=0;
+
 
 //CREATING KEY MANAGER
 
@@ -108,19 +135,15 @@ int main (int argc, char *argv[]) {
 
   if (pid == -1)
       printf("KeyManager not created!");
-  else
-	{
-		if (pid==0)
-		{
-     if(signal(SIGALRM, sigHandler)==SIG_ERR)
-       printf("\nsigHandler for ALARM failed");
 
-     for(int i=0;i<*ptr_count;i++){
-       if(ptr_vet[i].time>=300)
-         printf("");//ptr_vet[i]=NULL;
-     	}
+	if (pid==0){
+		while(1){
+			for(int i=0;i<*ptr_count;i++){
+				if(ptr_vet[i].time>=300)
+					printf("ciao sono keymanager");//ptr_vet[i]=NULL;
+				}
 
-		 alarm(30);
+		 sleep(30);
 		}
 	}
 //CREATING FIFOSERVER

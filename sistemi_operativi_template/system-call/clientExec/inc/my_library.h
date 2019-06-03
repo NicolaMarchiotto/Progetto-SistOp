@@ -3,7 +3,7 @@
 #include <string.h>
 #include <ctype.h>
 
-char strlwr(char * str);
+void strlwr(char * str);
 
 struct Request{
   char id[20];
