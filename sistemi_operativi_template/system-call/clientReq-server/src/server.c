@@ -5,6 +5,8 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <signal.h>
+#include <sys/shm.h>
+#include <time.h>
 
 #include "my_library.h"
 #include "errExit.h"
@@ -12,6 +14,9 @@
 char FifoServer[20]="FIFOSERVER";
 char FifoClient[20];
 pid_t pid;
+int *ptr_count;
+struct mynode *ptr_vet;
+
 
 void sigHandler(int sing) {
 //DELETING FIFOSERVER AND KILLING SERVER
@@ -29,32 +34,31 @@ void sigHandler(int sing) {
       exit(0);
   }
 
-  if(sing==ALARM){
+  if(sing==SIGALRM){
 
-    #####RIVEDI###
+    //#####RIVEDI###
     for(int i=0;i<*ptr_count;i++){
       if(ptr_vet[i].time>=300)
-        ptr_vet[i]=NULL;
-
-
+        //ptr_vet[i]=NULL;
     alarm(30);
-  }
+  	}
+	}
 }
 
 //GETKEY FUNCTION
 
 int getkey(char s[20]){
 
-  int time=(int)time(NULL);
+  int t=(int)time(NULL);
 
   int key=0;
 
   if(strcmp(s,"stampa")==0)
-    key=(time*10)+1;
+    key=(t*10)+1;
   else if(strcmp(s,"salva")==0)
-    key=(time*10)+2;
+    key=(t*10)+2;
   else
-    key=(time*10)+3;
+    key=(t*10)+3;
 
   sleep(1);
 
@@ -75,7 +79,7 @@ int main (int argc, char *argv[]) {
   sigfillset(&mySet);
   // remove SIGTERM from mySet -> ABLITO SIGINT AD ESSERE RICEVUTO
   sigdelset(&mySet, SIGTERM);
-  sigdelset(&mySet, SIGALARM);
+  sigdelset(&mySet, SIGALRM);
   // blocking all signals but SIGINT -> faccio diventare la maschera del processo myset
   sigprocmask(SIG_SETMASK, &mySet, NULL);
 
@@ -90,13 +94,13 @@ int main (int argc, char *argv[]) {
 //CREATING SHARED MEMORY
 
   int shmid=shmget(5,1000*sizeof(struct mynode), IPC_CREAT | O_RDWR );
-  struct mynode *ptr_vet=(struct mynode *)shmat(shmid,NULL,0);
+  ptr_vet=(struct mynode *)shmat(shmid,NULL,0);
 
 
   //creating count for helping managing
   int shmidInt=shmget(6,sizeof(int), IPC_CREAT | O_RDWR );
-  int *ptr_count=(int *)shmat(shmidInt,NULL,0);
-  *ptr_cont=0;
+  ptr_count=(int *)shmat(shmidInt,NULL,0);
+  *ptr_count=0;
 
 //CREATING KEY MANAGER
 
@@ -104,21 +108,21 @@ int main (int argc, char *argv[]) {
 
   if (pid == -1)
       printf("KeyManager not created!");
-  else if (pid==0) {
-    if(signal(SIGALARM, sigHandler)==-1)
-      printf("\nsigHandler for ALARM failed");
+  else
+	{
+		if (pid==0)
+		{
+     if(signal(SIGALRM, sigHandler)==SIG_ERR)
+       printf("\nsigHandler for ALARM failed");
 
+     for(int i=0;i<*ptr_count;i++){
+       if(ptr_vet[i].time>=300)
+         printf("");//ptr_vet[i]=NULL;
+     	}
 
-
-    for(int i=0;i<*ptr_count;i++){
-      if(ptr_vet[i].time>=300)
-        ptr_vet[i]=NULL;
-    }
-
-
-
-    alarm(30);
-  }
+		 alarm(30);
+		}
+	}
 //CREATING FIFOSERVER
 
   printf("\n<Server> Creating %s", FifoServer);
@@ -132,7 +136,8 @@ int main (int argc, char *argv[]) {
 
   printf("\n<Server> Opening %s", FifoServer);
   int fs=open(FifoServer, O_RDONLY);
-  if(fs==-1)
+
+	if(fs==-1)
     printf("\n<Server> Open fifo error\n");
   else
     printf("\n<Server> %s opened\n",FifoServer);
@@ -141,6 +146,7 @@ int main (int argc, char *argv[]) {
 
     printf("\n<Client fake> Opening %s", FifoServer);
     int fake_fs=open(FifoServer, O_WRONLY);
+
     if(fake_fs==-1)
       printf("\n<Client fake> Open fifo error\n");
     else
@@ -166,6 +172,7 @@ int main (int argc, char *argv[]) {
 
     printf("\n<Server> Opening %s", FifoClient);
     int fc=open(FifoClient, O_WRONLY);
+
     if(fc==-1)
       printf("\n<Server> Open fifo error\n");
     else
