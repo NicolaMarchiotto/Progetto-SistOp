@@ -27,6 +27,6 @@ int main (int argc, char *argv[]) {
       printf("\nErrore write per il servizio Stampa");
 
     close(file);
-    
+
     return 0;
 }

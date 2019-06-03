@@ -12,7 +12,7 @@ int main (int argc, char *argv[]){
 
   char nome_utente[20];
   char servizio[10];
-  int cond=0;
+
 
   struct Request req;
   struct Response resp;

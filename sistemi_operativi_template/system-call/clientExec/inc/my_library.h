@@ -22,4 +22,10 @@ struct mymsg{
   char text[100];
 };
 
+struct mynode{
+  char id[20];
+  int key;
+  int time;
+};
+
 #endif

@@ -11,6 +11,7 @@
 
 char FifoServer[20]="FIFOSERVER";
 char FifoClient[20];
+pid_t pid;
 
 void sigHandler(int sing) {
 //DELETING FIFOSERVER AND KILLING SERVER
@@ -22,10 +23,44 @@ void sigHandler(int sing) {
       else
         printf("\n<Server> %s deleted\n", FifoServer);
 
+      kill(pid,SIGTERM);
+
       printf("\n\n\nFine file Server\n\n\n");
       exit(0);
   }
+
+  if(sing==ALARM){
+
+    #####RIVEDI###
+    for(int i=0;i<*ptr_count;i++){
+      if(ptr_vet[i].time>=300)
+        ptr_vet[i]=NULL;
+
+
+    alarm(30);
+  }
 }
+
+//GETKEY FUNCTION
+
+int getkey(char s[20]){
+
+  int time=(int)time(NULL);
+
+  int key=0;
+
+  if(strcmp(s,"stampa")==0)
+    key=(time*10)+1;
+  else if(strcmp(s,"salva")==0)
+    key=(time*10)+2;
+  else
+    key=(time*10)+3;
+
+  sleep(1);
+
+  return key;
+}
+
 
 int main (int argc, char *argv[]) {
 
@@ -40,6 +75,7 @@ int main (int argc, char *argv[]) {
   sigfillset(&mySet);
   // remove SIGTERM from mySet -> ABLITO SIGINT AD ESSERE RICEVUTO
   sigdelset(&mySet, SIGTERM);
+  sigdelset(&mySet, SIGALARM);
   // blocking all signals but SIGINT -> faccio diventare la maschera del processo myset
   sigprocmask(SIG_SETMASK, &mySet, NULL);
 
@@ -47,11 +83,42 @@ int main (int argc, char *argv[]) {
   if (signal(SIGTERM,sigHandler) == SIG_ERR)
       errExit("change signal handler failed");
 
-
 //WELLCOME
 
   printf("Hi, I'm Server program!\n");
 
+//CREATING SHARED MEMORY
+
+  int shmid=shmget(5,1000*sizeof(struct mynode), IPC_CREAT | O_RDWR );
+  struct mynode *ptr_vet=(struct mynode *)shmat(shmid,NULL,0);
+
+
+  //creating count for helping managing
+  int shmidInt=shmget(6,sizeof(int), IPC_CREAT | O_RDWR );
+  int *ptr_count=(int *)shmat(shmidInt,NULL,0);
+  *ptr_cont=0;
+
+//CREATING KEY MANAGER
+
+  pid = fork();
+
+  if (pid == -1)
+      printf("KeyManager not created!");
+  else if (pid==0) {
+    if(signal(SIGALARM, sigHandler)==-1)
+      printf("\nsigHandler for ALARM failed");
+
+
+
+    for(int i=0;i<*ptr_count;i++){
+      if(ptr_vet[i].time>=300)
+        ptr_vet[i]=NULL;
+    }
+
+
+
+    alarm(30);
+  }
 //CREATING FIFOSERVER
 
   printf("\n<Server> Creating %s", FifoServer);
@@ -105,8 +172,8 @@ int main (int argc, char *argv[]) {
       printf("\n<Server> %s opened\n",FifoClient);
 
 //GENERATING KEY
-  resp.key=1;
-  //resp.key=getkey(req.servizio);
+  resp.key=getkey(req.servizio);
+
 
 
 //WRITING IN FIFOCLIENT
@@ -115,6 +182,7 @@ int main (int argc, char *argv[]) {
     strcpy(resp.servizio,req.servizio);
     write(fc,&resp,sizeof(struct Response));
   }
+
 
   return 0;
 }
