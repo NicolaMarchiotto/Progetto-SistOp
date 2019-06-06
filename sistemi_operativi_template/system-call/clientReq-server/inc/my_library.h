@@ -5,13 +5,11 @@
 
 void strlwr(char * str);
 
-/* errsemOpExit is a support function to manipulate a semaphore's value
- * of a semaphore set. semid is a semaphore set identifier, sem_num is the
- * index of a semaphore in the set, sem_op is the operation performed on sem_num
- */
 void semOp (int semid, unsigned short sem_num, short sem_op);
 
 void printSemaphoresValue (int semid);
+
+long int getkey(char s[20]);
 
 struct Request{
   char id[20];
@@ -22,7 +20,7 @@ struct Request{
 struct Response{
   char id[20];
   char servizio[10];
-  int key;
+  long int key;
 };
 
 struct mymsg{
@@ -32,8 +30,8 @@ struct mymsg{
 
 struct mynode{
   char id[20];
-  int key;
-  int time;
+  long int key;
+  long int time;
 };
 
 union semun{

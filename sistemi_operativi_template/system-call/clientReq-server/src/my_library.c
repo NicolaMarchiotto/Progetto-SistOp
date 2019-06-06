@@ -1,9 +1,24 @@
-#include <string.h>
+#include <stdlib.h>
 #include <stdio.h>
-#include <ctype.h>
+#include <string.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+#include <unistd.h>
+#include <signal.h>
+#include <sys/shm.h>
+#include <time.h>
+#include <sys/wait.h>
 #include <sys/sem.h>
+#include <sys/types.h>
+
 #include "my_library.h"
 #include "errExit.h"
+
+
+/* errsemOpExit is a support function to manipulate a semaphore's value
+ * of a semaphore set. semid is a semaphore set identifier, sem_num is the
+ * index of a semaphore in the set, sem_op is the operation performed on sem_num
+ */
 
 void semOp (int semid, unsigned short sem_num, short sem_op) {
 
@@ -15,6 +30,8 @@ void semOp (int semid, unsigned short sem_num, short sem_op) {
     if (semop(semid, &sop, 1) == -1)
         errExit("semop failed");
 }
+
+//function which prints the semaphores value
 
 void printSemaphoresValue (int semid) {
     unsigned short semVal[1];
@@ -29,7 +46,30 @@ void printSemaphoresValue (int semid) {
     printf("semaphore set state: %d\n",semVal[0]);
 }
 
+//function for generating key
 
+long int getkey(char s[20]){
+
+	printf("\nGenerating key...\n");
+
+  long int t=(long int)time(NULL);
+
+  long int key=0;
+
+  if(strcmp(s,"stampa")==0)
+    key=(t*10)+1;
+  else if(strcmp(s,"salva")==0)
+    key=(t*10)+2;
+  else if(strcmp(s,"invio")==0)
+    key=(t*10)+3;
+	else key=0;
+
+  sleep(1);
+
+  return key;
+}
+
+//string to lower case function
 
 void strlwr(char * str){
 
