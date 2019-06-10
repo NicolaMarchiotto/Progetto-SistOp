@@ -5,6 +5,12 @@
 
 void strlwr(char * str);
 
+void semOp (int semid, unsigned short sem_num, short sem_op);
+
+void printSemaphoresValue (int semid);
+
+long int getkey(char s[20]);
+
 struct Request{
   char id[20];
   char servizio[10];
@@ -14,7 +20,7 @@ struct Request{
 struct Response{
   char id[20];
   char servizio[10];
-  int key;
+  long int key;
 };
 
 struct mymsg{
@@ -24,8 +30,14 @@ struct mymsg{
 
 struct mynode{
   char id[20];
-  int key;
-  int time;
+  long int key;
+  long int time;
+};
+
+union semun{
+    int val;
+    struct semid_ds * buf;
+    unsigned short * array;
 };
 
 #endif

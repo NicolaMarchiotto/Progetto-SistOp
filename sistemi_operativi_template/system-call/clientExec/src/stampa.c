@@ -9,11 +9,16 @@
 #include "errExit.h"
 
 int main (int argc, char *argv[]) {
+
+  if(argc<4){
+    errExit("Wrong usage of Stampa program! text_to_write");
+  }
+
     printf("Hi, I'm Stampa program!\n");
 
     printf("\n");
 
-    for(int i=1;i<argc;i++)
+    for(int i=3;i<argc;i++)
       printf("%s ", argv[i]);
 
     printf("\n");

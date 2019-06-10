@@ -21,7 +21,6 @@ int shmidInt;
 int *ptr_count;
 int shmid;
 struct mynode *ptr_vet;
-struct mynode *ptr_sup;
 int semid;
 
 const int semkey=1;
@@ -36,7 +35,7 @@ void sigHandler(int sing) {
 
 	if(sing==SIGTERM){
 		if(pid>0){
-      //printf("\n<Server> Deleting %s", FifoServer);
+
       if(unlink(FifoServer)==-1)
         printf("\n<Server> Deleting %s error\n", FifoServer);
 
@@ -55,7 +54,6 @@ void sigHandler(int sing) {
 			if(semctl(semid, 0,IPC_RMID))
 				errExit("semctl error for deleting semset");
 
-			//printf("\n\n\nFine file Server\n\n\n");
 			wait(NULL);
       exit(0);
 		}
@@ -69,22 +67,22 @@ int main (int argc, char *argv[]) {
   struct Request req;
   struct Response resp;
 
-//BLOCCO TUTTI I SEGNALI APPARTE SIGTERM
+//BLOCKING ALL SIGNALS BUT SIGTERM
 
   // set of signals (N.B. it is not initialized!)
   sigset_t mySet;
-  // initialize mySet to contain all signals -> SEGNALI BLOCCATI=TUTTI
+  // initialize mySet to contain all signals -> signals blocked=all
   sigfillset(&mySet);
-  // remove SIGTERM from mySet -> ABLITO SIGINT AD ESSERE RICEVUTO
+  // remove SIGTERM from mySet
   sigdelset(&mySet, SIGTERM);
-  // blocking all signals but SIGINT -> faccio diventare la maschera del processo myset
+  // blocking all signals but SIGTERM -> mySet becomes the mask of my process
   sigprocmask(SIG_SETMASK, &mySet, NULL);
 
-  // set the function sigHandler as handler for the signal SIGINT -> SOVRASCRIVO FUNZIONE HANDLER SIGINT
+  // set the function sigHandler as handler for the signal SIGTERM
   if (signal(SIGTERM,sigHandler) == SIG_ERR)
       errExit("change signal handler failed");
 
-//CREO SET DI SEMAFORI
+//CREATING SEMAPHORES SET
 	semid=semget(semkey, 1, IPC_CREAT | S_IWUSR | S_IRUSR);
 	if (semid == -1)
 			errExit("semget failed");
@@ -105,16 +103,17 @@ int main (int argc, char *argv[]) {
 			errExit("\nshmget error for shmid");
 
 	ptr_vet=(struct mynode *)shmat(shmid,NULL,0);
-	ptr_sup=ptr_vet;
-  //creating count for helping managing
 
+  //creating count for helping managing the entries in the shared nemory
 
   shmidInt=shmget(shmkeyint,sizeof(int), IPC_CREAT | S_IRUSR | S_IWUSR );
 	if(shmidInt==-1)
 		errExit("\nshmget error for shmidInt");
+
   ptr_count=(int *)shmat(shmidInt,NULL,0);
 
 	*ptr_count=0;
+
 
 //WELCOME
 
@@ -136,13 +135,15 @@ int main (int argc, char *argv[]) {
 		{
 			printf("\n\n\nPrinting db\n---------------------\n");
 
+			//verifying if there are out-of-time entries
+
 			for(i=0;i<*ptr_count;i++){
 				if( ((time_t)time(NULL))-(time_t)(ptr_vet[i].time) >= 300){
-					//swap
 
-					//printf("\n\n\n\n\nDENTRO IF, TROVATA ENTRI CHE SCADE\n\n\n\n");
+					//swap with the last entry of ptr_vet
 
 					semOp(semid,0 ,-1);
+
 					strcpy(ptr_vet[i].id,ptr_vet[*ptr_count-1].id);
 					ptr_vet[i].key=ptr_vet[*ptr_count-1].key;
 					ptr_vet[i].time=ptr_vet[*ptr_count-1].time;
@@ -151,20 +152,14 @@ int main (int argc, char *argv[]) {
 
 					i=i-1;
 
-					//printf("\ndopo\n i: %i\nptr_count: %i\n", i,*ptr_count);
-
 					semOp(semid,0,1);
+
 				}
 				else{
 					if((*ptr_count)!=0)
 						printf("\nEntry number %i:\nId: %s\nKey: %ld\nTime_stamp: %ld\n",i+1,ptr_vet[i].id,ptr_vet[i].key,ptr_vet[i].time);
 				}
 			}
-
-		if((*ptr_count)==0)
-				printf("\nLooks like the database is empty\n");
-
-			//printf("\nValore di ptr_count: %i\n", *ptr_count);
 
 		 sleep(30);
 		}
@@ -173,14 +168,12 @@ int main (int argc, char *argv[]) {
 
 //CREATING FIFOSERVER
 
-  //printf("\n<Server> Creating %s", FifoServer);
   int fd=mkfifo(FifoServer, O_CREAT | S_IRUSR | S_IWUSR);
   if(fd==-1)
     errExit("\n<Server> MkFifo error\n");
 
 //OPENIG FIFOSERVER
 
-  //printf("\n<Server> Opening %s", FifoServer);
   int fs=open(FifoServer, O_RDONLY);
 
 	if(fs==-1)
@@ -188,7 +181,6 @@ int main (int argc, char *argv[]) {
 
 //OPENIG FIFOSERVER FAKECLIENT
 
-    //printf("\n<Client fake> Opening %s", FifoServer);
     int fake_fs=open(FifoServer, O_WRONLY);
 
     if(fake_fs==-1)
@@ -206,41 +198,41 @@ int main (int argc, char *argv[]) {
     if (br!=sizeof(struct Request))
       printf("\n<Server> looks like you haven't recived a struct Requst\n");
 
-    //printf("\nRequest:\n%s\n%s\n%s\n",req.id,req.servizio,req.fifo_name);
 
   //OPENING FIFOCLIENT
 
     strcpy(FifoClient,req.fifo_name);
 
-    //printf("\n<Server> Opening %s", FifoClient);
     int fc=open(FifoClient, O_WRONLY);
 
     if(fc==-1)
       errExit("\n<Server> Open fifo error\n");
 
 //GENERATING KEY
-  resp.key=getkey(req.servizio);
-	strcpy(resp.id,req.id);
-	strcpy(resp.servizio,req.servizio);
+	  resp.key=getkey(req.servizio);
+		strcpy(resp.id,req.id);
+		strcpy(resp.servizio,req.servizio);
 
 
-	semOp(semid, 0 , -1);
+		semOp(semid, 0 , -1);
 
-	if(resp.key!=0){
-		long int a=(long int)time(NULL);
-		struct mynode m;
-		m.key=resp.key;
-		m.time=a;
-		strcpy(m.id,resp.id);
+		if(*ptr_count==300)
+			printf("\nWe are sorry, the database is full, try again in a few moments\n");
+		else if(resp.key!=0){
+			long int a=(long int)time(NULL);
+			struct mynode m;
+			m.key=resp.key;
+			m.time=a;
+			strcpy(m.id,resp.id);
 
-		ptr_vet[*ptr_count]=m;
-		*ptr_count=*ptr_count+1;
-	}
+			ptr_vet[*ptr_count]=m;
+			*ptr_count=*ptr_count+1;
+		}
 
+		semOp(semid, 0 , 1);
 
-	semOp(semid, 0 , 1);
+//WRITING IN FIFOCLIENT
 
-	//WRITING IN FIFOCLIENT
 	printf("\nWriting back to client...\n");
   write(fc,&resp,sizeof(struct Response));
 

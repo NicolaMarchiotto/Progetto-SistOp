@@ -31,7 +31,7 @@ void semOp (int semid, unsigned short sem_num, short sem_op) {
         errExit("semop failed");
 }
 
-//function which prints the semaphores value
+//function which prints the semaphores value, for debugging
 
 void printSemaphoresValue (int semid) {
     unsigned short semVal[1];
@@ -60,7 +60,7 @@ long int getkey(char s[20]){
     key=(t*10)+1;
   else if(strcmp(s,"salva")==0)
     key=(t*10)+2;
-  else if(strcmp(s,"invio")==0)
+  else if(strcmp(s,"invia")==0)
     key=(t*10)+3;
 	else key=0;
 
@@ -69,7 +69,7 @@ long int getkey(char s[20]){
   return key;
 }
 
-//string to lower case function
+//string_to_lower_case function
 
 void strlwr(char * str){
 

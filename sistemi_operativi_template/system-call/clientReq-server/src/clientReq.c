@@ -36,16 +36,15 @@ int main (int argc, char *argv[]){
   printf("\nDigit your user name:");
   scanf(" %[^\n]s", nome_utente);
   printf("\nDigit the service to select:");
-  printf("\n- Stampa\n- Salva\n- Invio\n\nService: ");
+  printf("\n- Stampa\n- Salva\n- Invia\n\nService: ");
 
-//INSERIMENTO SERVIZIO
+//DIGIT SERVICE
 
   scanf(" %[^\n]s", servizio);
   strlwr(servizio);
 
 //CREATING FIFOCLIENT
 
-  //printf("\n<Client %i> Creating %s",getpid(), FifoClient);
   int fd=mkfifo(FifoClient, O_CREAT | S_IRUSR | S_IWUSR);
   if(fd==-1){
     strcpy(buff1,"");
@@ -55,7 +54,6 @@ int main (int argc, char *argv[]){
 
 //OPENIG FIFOSERVER
 
-  //printf("\n<Client %i> Opening %s",getpid(), FifoServer);
   int fs=open(FifoServer, O_WRONLY);
   if(fs==-1){
     strcpy(buff1,"");
@@ -73,7 +71,6 @@ int main (int argc, char *argv[]){
 
 //OPENING FIFOCLIENT
 
-  //printf("\n<Client %i> Opening %s",getpid(), FifoClient);
   int fc=open(FifoClient, O_RDONLY);
   if(fc==-1){
     strcpy(buff1,"");
@@ -98,14 +95,12 @@ int main (int argc, char *argv[]){
 
 //DELETING FIFOCLIENT
 
-  //printf("\n<Client %i> Deleting %s",getpid(), FifoClient);
   if(unlink(FifoClient)==-1){
     strcpy(buff1,"");
     sprintf(buff1,"\n<Client %i> Deleting %s error\n",getpid(), FifoClient);
     errExit(buff1);
   }
 
-  //printf("\n\n\nFine file ClientReq %i\n\n\n", getpid());
 
   return 0;
 }
