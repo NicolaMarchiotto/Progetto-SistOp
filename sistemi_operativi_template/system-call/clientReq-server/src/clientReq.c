@@ -34,7 +34,7 @@ int main (int argc, char *argv[]){
   printf("Hi, I'm ClientReq program!\n");
 
   printf("\nDigit your user name:");
-  scanf(" %[^\n]s", nome_utente);
+  scanf(" %20[^\n]s", nome_utente);
   printf("\nDigit the service to select:");
   printf("\n- Stampa\n- Salva\n- Invia\n\nService: ");
 
