@@ -34,13 +34,14 @@ int main (int argc, char *argv[]){
   printf("Hi, I'm ClientReq program!\n");
 
   printf("\nDigit your user name:");
-  scanf(" %20[^\n]s", nome_utente);
+  scanf(" %20s", nome_utente);
+  //setbuf(stdin,NULL);
+  while(getchar() != '\n');
   printf("\nDigit the service to select:");
   printf("\n- Stampa\n- Salva\n- Invia\n\nService: ");
-
 //DIGIT SERVICE
 
-  scanf(" %[^\n]s", servizio);
+  scanf(" %s", servizio);
   strlwr(servizio);
 
 //CREATING FIFOCLIENT

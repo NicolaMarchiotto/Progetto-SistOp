@@ -19,10 +19,15 @@ int main (int argc, char *argv[]) {
     while(argc<4);
 
     struct mymsg msg;
-    key_t key=atoi(argv[3]);
     char buf[100];
+    key_t key=atoi(argv[3]);
 
-    int prova=msgget(key, IPC_CREAT | S_IRUSR | S_IWUSR);
+    if(key<=0){
+      printf("\nYou did not entered a numeric key\n");
+      exit(0);
+    }
+
+    //int prova=msgget(key, IPC_CREAT | S_IRUSR | S_IWUSR);
 
     int msqid=msgget(key, S_IRUSR | S_IWUSR);
 
@@ -42,12 +47,12 @@ int main (int argc, char *argv[]) {
       printf("\nService invia completed\n");
 
 
-    struct mymsg resp;
+    /*struct mymsg resp;
 
     if(msgrcv(msqid,&resp,mSize,1,0)==-1)
       errExit("\nmsgrcv error");
 
-    printf("\nRESP: %s\n", resp.text);
+    printf("\nRESP: %s\n", resp.text);*/
 
 
     if(msgctl(msqid,IPC_RMID,NULL)==-1)

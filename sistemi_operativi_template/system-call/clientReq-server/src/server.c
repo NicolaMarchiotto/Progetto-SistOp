@@ -133,33 +133,41 @@ int main (int argc, char *argv[]) {
 
 		while(1)
 		{
-			printf("\n\n\nPrinting db\n---------------------\n");
-
+			printf("\n\n\nPrinting database...");
 			//verifying if there are out-of-time entries
 
 			for(i=0;i<*ptr_count;i++){
-				if( ((time_t)time(NULL))-(time_t)(ptr_vet[i].time) >= 300){
+				if( ((time_t)time(NULL))-(time_t)(ptr_vet[i].time) >= 80){
 
 					//swap with the last entry of ptr_vet
 
 					semOp(semid,0 ,-1);
-
-					strcpy(ptr_vet[i].id,ptr_vet[*ptr_count-1].id);
-					ptr_vet[i].key=ptr_vet[*ptr_count-1].key;
-					ptr_vet[i].time=ptr_vet[*ptr_count-1].time;
+					if(*ptr_count!=1){
+						strcpy(ptr_vet[i].id,ptr_vet[*ptr_count-1].id);
+						ptr_vet[i].key=ptr_vet[*ptr_count-1].key;
+						ptr_vet[i].time=ptr_vet[*ptr_count-1].time;
+						i=i-1;
+					}
 
 					(*ptr_count)--;
-
-					i=i-1;
 
 					semOp(semid,0,1);
 
 				}
 				else{
-					if((*ptr_count)!=0)
-						printf("\nEntry number %i:\nId: %s\nKey: %ld\nTime_stamp: %ld\n",i+1,ptr_vet[i].id,ptr_vet[i].key,ptr_vet[i].time);
+					if((*ptr_count)!=0){
+						printf("\n------------------");
+						printf("\nEntry number: %i\nId: %s\nKey: %ld\nTime in shared memory: %ld",i+1,ptr_vet[i].id,ptr_vet[i].key,(long int)time(NULL)-ptr_vet[i].time);
+						printf("\n------------------\n");
+					}
 				}
+
 			}
+			
+			if(*ptr_count==0)
+				printf("\nDatabase empty...\n\n");
+			else
+				printf("\n\n");
 
 		 sleep(30);
 		}
