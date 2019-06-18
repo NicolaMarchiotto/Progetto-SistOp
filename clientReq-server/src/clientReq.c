@@ -90,7 +90,7 @@ int main (int argc, char *argv[]){
     printf("\n<Client %i> looks like you haven't recived a struct Response\n", getpid());
 
   if(resp.key==0)
-    printf("\nIt looks like your entry was not one of the option\n");
+    printf("\nIt looks like your entry was not one of the option, try again\n");
   else
     printf("\nRESPONSE\nid: %s\nservice: %s\nkey: %ld\n",resp.id,resp.servizio,resp.key);
 

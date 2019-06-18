@@ -23,9 +23,11 @@ int main (int argc, char *argv[]) {
     key_t key=atoi(argv[3]);
 
     if(key<=0){
-      printf("\nYou did not entered a numeric key\n");
+      printf("\nYou did not entered a numeric key, try again\n");
       exit(0);
     }
+
+    //for debugging
 
     //int prova=msgget(key, IPC_CREAT | S_IRUSR | S_IWUSR);
 
@@ -46,6 +48,8 @@ int main (int argc, char *argv[]) {
     else
       printf("\nService invia completed\n");
 
+
+    //for debugging
 
     /*struct mymsg resp;
 
