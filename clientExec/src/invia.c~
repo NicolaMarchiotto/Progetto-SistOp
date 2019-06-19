@@ -32,11 +32,7 @@ int main (int argc, char *argv[]) {
     //int prova=msgget(key, IPC_CREAT | S_IRUSR | S_IWUSR);
 
     int msqid=msgget(key, S_IRUSR | S_IWUSR);
-	if(msqid==-1){
-		printf("\nmsgget failed\n");
-		exit(0);
-	}
-	
+
     for(int i=4;i<argc;i++){
       strcat(buf, argv[i]);
       strcat(buf, " ");

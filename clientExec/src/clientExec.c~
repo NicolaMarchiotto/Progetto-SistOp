@@ -41,16 +41,15 @@ int main (int argc, char *argv[]) {
 
     shmid=shmget(shmkey,SIZE*sizeof(struct mynode), S_IRUSR | S_IWUSR );
   	if(shmid==-1){
-  		errExit("\nshmget error for shmid, run server firts");
+  		printf("\nRun server first\n");
+  		errExit("\nshmget error for shmid");
 	}
-	
   	ptr_vet=(struct mynode *)shmat(shmid,NULL,0);
 
     shmidInt=shmget(shmkeyint,sizeof(int), S_IRUSR | S_IWUSR );
   	if(shmidInt==-1){
   		errExit("\nshmget error for shmidInt, run server firts");
   	}
-  	
     ptr_count=(int *)shmat(shmidInt,NULL,0);
 
 //GETTING SEMAPHORES SET

@@ -10,7 +10,7 @@
 
 int main (int argc, char *argv[]){
 
-  char nome_utente[21];
+  char nome_utente[20];
   char servizio[10];
   char buff1[50];
 
@@ -34,8 +34,8 @@ int main (int argc, char *argv[]){
 	
   printf("Hi, I'm ClientReq program!\n");
 
-  printf("\nDigit your user name, no space allowed, max 20 characters:");
-  scanf(" %20s", nome_utente);
+  printf("\nDigit your user name, no space allowed, max 19 characters:");
+  scanf(" %19s", nome_utente);
 
   
   //setbuf(stdin,NULL);
