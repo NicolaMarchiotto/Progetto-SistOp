@@ -10,13 +10,13 @@
 #include "errExit.h"
 
 int main (int argc, char *argv[]) {
-    printf("Hi, I'm Invia program!\n");
 
-    do{
-      if(argc<4)
-        errExit("\nWrong usage! key_t key *char text\n");
+    if(argc<4){
+      printf("\nWrong usage! id, key_service, key_t key_msq, *char text_to_send\n");
+      exit(0);
     }
-    while(argc<4);
+
+    printf("Hi, I'm Invia program!\n");
 
     struct mymsg msg;
     char buf[100];
@@ -27,16 +27,17 @@ int main (int argc, char *argv[]) {
       exit(0);
     }
 
-    //for debugging
-
-    //int prova=msgget(key, IPC_CREAT | S_IRUSR | S_IWUSR);
+    /*
+    for debugging
+    int prova=msgget(key, IPC_CREAT | S_IRUSR | S_IWUSR);
+    */
 
     int msqid=msgget(key, S_IRUSR | S_IWUSR);
-	if(msqid==-1){
-		printf("\nmsgget failed\n");
-		exit(0);
-	}
-	
+	  if(msqid==-1){
+		  printf("\nmsgget failed\n");
+		  exit(0);
+	  }
+
     for(int i=4;i<argc;i++){
       strcat(buf, argv[i]);
       strcat(buf, " ");
@@ -53,14 +54,16 @@ int main (int argc, char *argv[]) {
       printf("\nService invia completed\n");
 
 
-    //for debugging
+    /*
+    for debugging
 
-    /*struct mymsg resp;
+    struct mymsg resp;
 
     if(msgrcv(msqid,&resp,mSize,1,0)==-1)
       errExit("\nmsgrcv error");
 
-    printf("\nRESP: %s\n", resp.text);*/
+    printf("\nRESP: %s\n", resp.text);
+    */
 
 
     if(msgctl(msqid,IPC_RMID,NULL)==-1)

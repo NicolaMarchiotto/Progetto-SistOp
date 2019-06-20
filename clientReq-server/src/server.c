@@ -90,7 +90,6 @@ int main (int argc, char *argv[]) {
 	if (semid == -1)
 			errExit("semget failed");
 
-	// Initialize the semaphore set with semctl
 	unsigned short semInitVal[] = {1};
 	union semun arg;
 	arg.array = semInitVal;
@@ -103,17 +102,20 @@ int main (int argc, char *argv[]) {
 
   shmid=shmget(shmkey,SIZE*sizeof(struct mynode), IPC_CREAT | S_IRUSR | S_IWUSR );
 	if(shmid==-1)
-			errExit("\nshmget error for shmid");
+			errExit("\n<Server> shmget error for shmid");
 
 	ptr_vet=(struct mynode *)shmat(shmid,NULL,0);
-
+	if(ptr_vet==(void *)-1)
+		errExit("\n<Server> shmat tr_vet\n");
   //creating count for helping managing the entries in the shared nemory
 
   shmidInt=shmget(shmkeyint,sizeof(int), IPC_CREAT | S_IRUSR | S_IWUSR );
 	if(shmidInt==-1)
-		errExit("\nshmget error for shmidInt");
+		errExit("\n<Server> shmget error for shmidInt");
 
   ptr_count=(int *)shmat(shmidInt,NULL,0);
+	if(ptr_count==(void *)-1)
+		errExit("\n<Server> shmat tr_vet\n");
 
 	*ptr_count=0;
 
@@ -166,7 +168,7 @@ int main (int argc, char *argv[]) {
 				}
 
 			}
-			
+
 			if(*ptr_count==0)
 				printf("\nDatabase empty...\n\n");
 			else
@@ -193,7 +195,6 @@ int main (int argc, char *argv[]) {
 //OPENIG FIFOSERVER FAKECLIENT
 
     int fake_fs=open(FifoServer, O_WRONLY);
-
     if(fake_fs==-1)
       errExit("\n<Client fake> Open fifo error\n");
 
@@ -245,7 +246,19 @@ int main (int argc, char *argv[]) {
 //WRITING IN FIFOCLIENT
 
 	printf("\nWriting back to client...\n");
-  write(fc,&resp,sizeof(struct Response));
+  ssize_t wr=write(fc,&resp,sizeof(struct Response));
+	if(wr!=sizeof(struct Response)){
+
+		int prova=sizeof(struct Response);
+
+		printf("\n\nValore di wr: %li, valore di prova: %i\n\n", wr,prova);
+
+		char buff1[30];
+    strcpy(buff1,"");
+    sprintf(buff1,"\n<Server> write error\n");
+    errExit(buff1);
+  }
+
 
 	}
 

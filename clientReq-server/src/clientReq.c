@@ -29,15 +29,15 @@ int main (int argc, char *argv[]){
 
   char FifoServer[20]="FIFOSERVER";
 
-//PROGRAM START	
-	
-	
+//PROGRAM START
+
+
   printf("Hi, I'm ClientReq program!\n");
 
-  printf("\nDigit your user name, no space allowed, max 20 characters:");
+  printf("\nDigit your user name, no space allowed, max 20 characters: ");
   scanf(" %20s", nome_utente);
 
-  
+
   //setbuf(stdin,NULL);
   while(getchar() != '\n');
   printf("\nSelect the service:");
@@ -62,8 +62,9 @@ int main (int argc, char *argv[]){
   int fs=open(FifoServer, O_WRONLY);
   if(fs==-1){
     strcpy(buff1,"");
-    sprintf(buff1,"\n<Client %i> Open fifo error\n",getpid());
-    unlink(FifoClient);
+    sprintf(buff1,"\n<Client %i> Open fifo server error\n",getpid());
+    if(unlink(FifoClient)==-1)
+      printf("\n<Client %i> Deleting %s error\n", getpid(), FifoClient);
     errExit(buff1);
   }
 
@@ -73,7 +74,13 @@ int main (int argc, char *argv[]){
   strcpy(req.servizio,servizio);
   strcpy(req.fifo_name,FifoClient);
 
-  write(fs,&req,sizeof(struct Request));
+  ssize_t wr=write(fs,&req,sizeof(struct Request));
+  if(wr!=sizeof(struct Request)){
+    strcpy(buff1,"");
+    sprintf(buff1,"\n<Client %i> write error\n",getpid());
+    errExit(buff1);
+  }
+
 
 //OPENING FIFOCLIENT
 
@@ -86,7 +93,7 @@ int main (int argc, char *argv[]){
 
 //READING FIFOCLIENT
 
-  int br=read(fc,&resp,sizeof(struct Response));
+  ssize_t br=read(fc,&resp,sizeof(struct Response));
 
   //Checking the number of bytes from the FIFO
   if (sizeof(resp)!=sizeof(struct Response))

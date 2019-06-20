@@ -11,12 +11,11 @@
 int main (int argc, char *argv[]) {
 
   if(argc<4){
-    errExit("Wrong usage of Stampa program! text_to_write");
+    printf("\nWrong usage! id, key_service, text_to_write\n");
+    exit(0);
   }
 
-    printf("Hi, I'm Stampa program!\n");
-
-    printf("\n");
+    printf("Hi, I'm Stampa program!\n\n");
 
     for(int i=3;i<argc;i++)
       printf("%s ", argv[i]);

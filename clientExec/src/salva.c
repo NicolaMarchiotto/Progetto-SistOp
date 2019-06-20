@@ -13,7 +13,8 @@ int main (int argc, char *argv[]) {
     char buf[50]="";
 
     if(argc<5){
-      errExit("Wrong usage of Salva program! filename_destionation text_to_write");
+      printf("\nWrong usage! id, key_service, filename_destionation, text_to_write\n");
+      exit(0);
     }
 
     printf("Hi, I'm Salva program!\n");
@@ -21,7 +22,7 @@ int main (int argc, char *argv[]) {
     int file=open(argv[3], O_RDWR | O_CREAT | O_APPEND, S_IRUSR | S_IWUSR);
 
     if(file==-1)
-      printf("\nErrore open file per servizio Stampa");
+      printf("\nErrore open file per servizio Stampa\n");
 
     for(int i=4;i<argc;i++){
       strcat(buf, argv[i]);
@@ -34,7 +35,8 @@ int main (int argc, char *argv[]) {
     else
       printf("\nService Stampa completed\n");
 
-    close(file);
+    if(close(file)==-1)
+      errExit("\nclose file error on service stampa");
 
     return 0;
 }
