@@ -36,12 +36,10 @@ int main (int argc, char *argv[]){
 
   printf("\nDigit your user name, no space allowed, max 20 characters: ");
   scanf(" %20s", nome_utente);
-
-
-  //setbuf(stdin,NULL);
   while(getchar() != '\n');
   printf("\nSelect the service:");
   printf("\n- Stampa\n- Salva\n- Invia\n\nService: ");
+
 //DIGIT SERVICE
 
   scanf(" %s", servizio);
@@ -95,7 +93,6 @@ int main (int argc, char *argv[]){
 
   ssize_t br=read(fc,&resp,sizeof(struct Response));
 
-  //Checking the number of bytes from the FIFO
   if (sizeof(resp)!=sizeof(struct Response))
     printf("\n<Client %i> %s looks broken", getpid(), FifoClient);
   if (br!=sizeof(struct Response))

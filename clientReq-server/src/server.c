@@ -72,16 +72,17 @@ int main (int argc, char *argv[]) {
 
 //BLOCKING ALL SIGNALS BUT SIGTERM
 
-  // set of signals (N.B. it is not initialized!)
   sigset_t mySet;
-  // initialize mySet to contain all signals -> signals blocked=all
-  sigfillset(&mySet);
-  // remove SIGTERM from mySet
-  sigdelset(&mySet, SIGTERM);
-  // blocking all signals but SIGTERM -> mySet becomes the mask of my process
-  sigprocmask(SIG_SETMASK, &mySet, NULL);
+  if(sigfillset(&mySet)==-1)
+		errExit("\nsigfillset server error");
 
-  // set the function sigHandler as handler for the signal SIGTERM
+  if(sigdelset(&mySet, SIGTERM)==-1)
+		errExit("\nsigdelset server error");
+
+  if(sigprocmask(SIG_SETMASK, &mySet, NULL)==-1)
+		errExit("\nsigprocmask server error");
+
+
   if (signal(SIGTERM,sigHandler) == SIG_ERR)
       errExit("change signal handler failed");
 
@@ -107,6 +108,7 @@ int main (int argc, char *argv[]) {
 	ptr_vet=(struct mynode *)shmat(shmid,NULL,0);
 	if(ptr_vet==(void *)-1)
 		errExit("\n<Server> shmat tr_vet\n");
+
   //creating count for helping managing the entries in the shared nemory
 
   shmidInt=shmget(shmkeyint,sizeof(int), IPC_CREAT | S_IRUSR | S_IWUSR );
@@ -204,7 +206,6 @@ int main (int argc, char *argv[]) {
   {
     int br=read(fs,&req,sizeof(struct Request));
 
-    //Checking the number of bytes from the FIFO
     if (sizeof(req)!=sizeof(struct Request))
       printf("\n<Server> %s looks broken", FifoServer);
     if (br!=sizeof(struct Request))
@@ -221,6 +222,7 @@ int main (int argc, char *argv[]) {
       errExit("\n<Server> Open fifo error\n");
 
 //GENERATING KEY
+
 	  resp.key=getkey(req.servizio);
 		strcpy(resp.id,req.id);
 		strcpy(resp.servizio,req.servizio);
